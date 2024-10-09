@@ -2,114 +2,132 @@
     <header>
         <h1>వడ్డీ కాలిక్యులేటర్</h1>
     </header>
-    <!-- <div class="center"> -->
     <div class="card">
         <div>
             <form @submit.prevent="calculate">
                 <div class="form-group">
-                    <label for="principal_amount">అసలు మెుత్తం</label>
+                    <label for="principal_amount">అసలు మెుత్తం(S.I)</label>
                     <input
                         type="number"
                         class="form-control"
                         id="principal_amount"
                         v-model.trim="principal"
+                        required
                     />
                 </div>
                 <div class="form-group">
-                    <label for="intrest">వడ్డీ రేటు</label>
-                    <!-- <input
-            type="d"
-            class="form-control"
-            id="intrest"
-            v-model.trim="intrest"
-          /> -->
+                    <label for="intrest">వడ్డీ రేటు (%)(I)</label>
                     <select
                         name="intrest"
-                        id="cars"
+                        id="intrest"
                         class="form-control"
                         v-model.trim="intrest"
+                        required
                     >
-                        <option value="0.5">0.5</option>
-                        <option value="1">1</option>
-                        <option value="1.5">1.5</option>
-                        <option value="2">2</option>
-                        <option value="2.5">2.5</option>
-                        <option value="3">3</option>
+                        <option disabled value="">ఎంచుకోండి</option>
+                        <option
+                            v-for="rate in interestRates"
+                            :key="rate"
+                            :value="rate"
+                        >
+                            {{ rate }}
+                        </option>
                     </select>
                 </div>
-                <!-- <div class="form-group">
-                    <label for="cummulative">సంచిత రేటు</label>
+                <div class="form-group">
+                    <label for="cummulative"
+                        >సంచిత రేటు (సంవత్సరాలు)(C.I in Y)</label
+                    >
                     <select
                         name="cummulative"
-                        id="cars"
+                        id="cummulative"
                         class="form-control"
                         v-model.trim="cummulative"
                     >
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="3">3</option>
+                        <option disabled value="">ఎంచుకోండి</option>
+                        <option
+                            v-for="period in cumulativePeriods"
+                            :key="period"
+                            :value="period"
+                        >
+                            {{ period }}
+                        </option>
                     </select>
-                </div> -->
+                </div>
                 <div class="form-group">
-                    <label for="from_date">ఇచ్చిన తేదీ</label>
+                    <label for="from_date">ఇచ్చిన తేదీ(G.D)</label>
                     <input
                         type="date"
                         class="form-control"
                         id="from_date"
                         v-model.trim="from_date"
+                        required
                     />
                 </div>
                 <div class="form-group">
-                    <label for="to_date">తీసుకున్న తేదీ</label>
+                    <label for="to_date">తీసుకున్న తేదీ(A.D)</label>
                     <input
                         type="date"
                         class="form-control"
                         id="to_date"
                         v-model.trim="to_date"
+                        required
                     />
                 </div>
                 <div class="form-group">
                     <button type="submit">లెక్కించు</button>
                 </div>
             </form>
-            <div v-if="errormessage">
+            <div v-if="errormessage" class="error-message">
                 <p>వివరాలు అన్నింటినీ నింపి ఫారం సబ్మిట్ చేయండి.</p>
+                <p>ప్రారంభ తేదీ ముగింపు తేదీ కంటే తక్కువగా ఉండాలి.</p>
             </div>
 
+            <div v-if="display_details" class="table-wrapper">
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th>సంచిత కాలం (సంవత్సరాలు)</th>
+                            <th>ఆరంభ తేదీ</th>
+                            <th>అసలు మెుత్తం</th>
+                            <th>వడ్డీ</th>
+                            <th>మొత్తం డబ్బు</th>
+                            <th>ముగింపు తేదీ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="detail in compoundingDetails"
+                            :key="detail.period"
+                        >
+                            <td>{{ detail.period }}</td>
+                            <td>{{ formatDate(detail.startDate) }}</td>
+                            <td>{{ detail.principal.toFixed(2) }}</td>
+                            <td>{{ detail.interest.toFixed(2) }}</td>
+                            <td>
+                                {{
+                                    (
+                                        detail.principal + detail.interest
+                                    ).toFixed(2)
+                                }}
+                            </td>
+                            <td>{{ formatDate(detail.endDate) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <br />
             <div v-if="display_details">
                 <p>
-                    <strong>మొత్తం నెలలు: </strong>{{ diffmonths }} నెలలు
-                    {{ diffDays }} రోజులు
+                    <b>మొత్తం సమయం : </b>
+                    {{ convertTimeToTelugu(totalTime) }}
                 </p>
-
-                <div
-                    v-for="detail in compound_details"
-                    :key="detail.cumulativeYear"
-                >
-                    <h3>{{ detail.cumulativeYear }} సంవత్సరానికి వివరాలు:</h3>
-                    <p>
-                        <strong>మొదటి మొత్తం : </strong
-                        >{{ detail.principalAmount }}
-                    </p>
-                    <p>
-                        <strong>వడ్డీ మొత్తం : </strong
-                        >{{ detail.interestAmount }}
-                    </p>
-                    <p>
-                        <strong>మొత్తం డబ్బు : </strong>{{ detail.totalAmount }}
-                    </p>
-                </div>
-
-                <p>
-                    <strong>{{ diffmonths }} నెలలు వడ్డీ : </strong>
-                    {{ intrest_amount_months }}
+                <p v-if="parseInt(cummulative) === 0">
+                    <b>ఒక రోజు వడ్డీ :</b>
+                    {{ (total_interest_amount / totalDays).toFixed(2) }}
                 </p>
-                <p>
-                    <strong>{{ diffDays }} రోజులు: వడ్డీ </strong
-                    >{{ intrest_amount_days }}
-                </p>
-                <p><strong>మొత్తం వడ్డీ : </strong>{{ total_intrest }}</p>
-                <p><strong>మొత్తం డబ్బు : </strong>{{ total_amount }}</p>
+                <p><b>మొత్తం వడ్డీ:</b> {{ total_interest_amount }}</p>
+                <p><b>మొత్తం డబ్బు:</b> {{ total_amount }}</p>
             </div>
         </div>
     </div>
@@ -119,51 +137,251 @@
 export default {
     data() {
         return {
+            totalDays: 0,
+            totalTime: "",
             principal: "",
-            cummulative: "",
+            cummulative: "0",
             intrest: "",
             to_date: "",
             from_date: "",
             intrest_amount_months: 0,
             intrest_amount_days: 0,
             total_amount: 0,
+            total_interest_amount: 0,
             diffDays: 0,
             diffmonths: 0,
             diffYears: 0,
             display_details: false,
             errormessage: false,
-            compound_details: [],
+            simple_interest_details: [],
+            interestRates: [0.5, 1, 1.5, 2, 2.5, 3],
+            cumulativePeriods: [0, 1, 3], // Assuming cumulative is in years (1 or 3)
+            compoundingDetails: [],
         };
     },
     methods: {
-        /*
-      A = P(1 + r/n)nt
-      
-      */
-        CompoundInterest() {
-            let principalAmount = 0;
-            let interestAmount = 0;
-            for (let i = 0; i < this.diffYears; i = i + this.cummulative) {
-                if (i === 0) {
-                    principalAmount = this.principal;
-                }
-                principalAmount += interestAmount;
-                principalAmount = this.principal;
-                let r = this.interest;
-                let n = 1 / this.cummulative;
-                let t = this.cummulative;
-                interestAmount =
-                    principalAmount * Math.pow(1 + r / n, n * t) -
-                    principalAmount;
-                let totalAmount = principalAmount + interestAmount;
+        convertTimeToTelugu(timeString) {
+            // Extract the values for years (y), months (m), and days (d) using regular expressions
+            let timePattern = /(\d+)y\s+(\d+)m\s+(\d+)d/;
+            let match = timeString.match(timePattern);
 
-                this.compound_details.push({
-                    principalAmount,
-                    interestAmount,
-                    totalAmount,
-                    cumulativeYear: i * this.cummulative,
+            if (match) {
+                let years = match[1];
+                let months = match[2];
+                let days = match[3];
+
+                // Create the Telugu translation
+                let teluguTranslation = `${years} సంవత్సరాలు ${months} నెలలు ${days} రోజులు`;
+                return teluguTranslation;
+            } else {
+                return "Invalid input format";
+            }
+        },
+        formatDate(dateString) {
+            const options = {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            };
+            return new Date(dateString).toLocaleDateString("en-GB", options);
+        },
+        parseDate(date) {
+            return new Date(date);
+        },
+
+        getDateDifference(start, end) {
+            const startDate = this.parseDate(start);
+            if (end === "") {
+                end = new Date();
+            }
+            const endDate = this.parseDate(end);
+            let years = endDate.getFullYear() - startDate.getFullYear();
+            let months = endDate.getMonth() - startDate.getMonth();
+            let days = endDate.getDate() - startDate.getDate();
+
+            if (days < 0) {
+                months--;
+                const previousMonth = new Date(
+                    endDate.getFullYear(),
+                    endDate.getMonth(),
+                    0
+                ).getDate();
+                days += previousMonth;
+            }
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            const totalTime = `${years}y ${months}m ${days}d`;
+
+            const completeYears = parseFloat(
+                (years + months / 12 + days / 365).toFixed(3)
+            );
+            const completeMonths = parseFloat(
+                (years * 12 + months + days / 30).toFixed(3)
+            );
+            const completeDays = Math.floor(
+                (endDate.getTime() - startDate.getTime()) /
+                    (1000 * 60 * 60 * 24)
+            );
+
+            return {
+                years,
+                months,
+                days,
+                totalTime,
+                completeYears,
+                completeMonths,
+                completeDays,
+            };
+        },
+
+        calculateCompoundInterest() {
+            let principal = this.principal;
+            let interestRate = this.intrest;
+            let startDate = new Date(this.from_date);
+            let endDate = new Date(this.to_date);
+            let forNoOfYears = this.cummulative;
+            let compounded = this.cummulative !== "0" ? true : false;
+
+            const start = new Date(startDate);
+            const end = endDate ? new Date(endDate) : new Date();
+            const dateDiff = this.getDateDifference(start, end);
+            this.totalTime = dateDiff.totalTime;
+            this.totalDays = dateDiff.completeDays;
+            if (!compounded) {
+                const simpleInterestDetail = this.calculateSimpleInterest(
+                    principal,
+                    interestRate,
+                    dateDiff.completeYears
+                );
+                this.total_interest_amount =
+                    simpleInterestDetail.interest.toFixed(2);
+                this.total_amount = parseFloat(
+                    parseFloat(simpleInterestDetail.principal) +
+                        parseFloat(this.total_interest_amount)
+                ).toFixed(2);
+                return {
+                    compounded: false,
+                    principal: parseFloat(
+                        simpleInterestDetail.principal.toFixed(2)
+                    ),
+                    interest: parseFloat(
+                        simpleInterestDetail.interest.toFixed(2)
+                    ),
+                    endDate,
+                    startDate,
+                    compoundingDetails: [
+                        {
+                            period: 1,
+                            startDate: start.toISOString(),
+                            endDate: end.toISOString(),
+                            principal: parseFloat(
+                                simpleInterestDetail.principal.toFixed(2)
+                            ),
+                            interest: parseFloat(
+                                simpleInterestDetail.interest.toFixed(2)
+                            ),
+                        },
+                    ],
+                };
+            }
+
+            let currentPrincipal = principal;
+            let totalInterest = 0;
+            const compoundingDetails = [];
+            let currentStartDate = start;
+            let period = 1;
+
+            const timeInterval = forNoOfYears;
+
+            while (currentStartDate < end) {
+                const simpleInterest = this.calculateSimpleInterest(
+                    currentPrincipal,
+                    interestRate,
+                    timeInterval
+                );
+                currentPrincipal += simpleInterest.interest;
+
+                const nextStartDate = new Date(currentStartDate);
+                nextStartDate.setFullYear(
+                    nextStartDate.getFullYear() + Math.floor(timeInterval)
+                );
+                nextStartDate.setMonth(
+                    nextStartDate.getMonth() + (timeInterval % 1) * 12
+                );
+
+                if (nextStartDate > end) {
+                    break;
+                }
+
+                compoundingDetails.push({
+                    period: period++,
+                    startDate: currentStartDate.toISOString(),
+                    endDate: nextStartDate.toISOString(),
+                    principal: parseFloat(simpleInterest.principal.toFixed(2)),
+                    interest: parseFloat(simpleInterest.interest.toFixed(2)),
+                });
+
+                currentStartDate = nextStartDate;
+            }
+
+            // Calculate interest for the remaining period if any
+            console.log(this.getDateDifference(currentStartDate, end));
+            const remainingTimeInYears = this.getDateDifference(
+                currentStartDate,
+                end
+            );
+            if (remainingTimeInYears.completeYears > 0) {
+                console.log({
+                    remainingTimeInYears,
+                    end: end.toISOString(),
+                    current: currentStartDate.toISOString(),
+                });
+                const simpleInterest = this.calculateSimpleInterest(
+                    currentPrincipal,
+                    interestRate,
+                    remainingTimeInYears.completeYears
+                );
+                currentPrincipal += simpleInterest.interest;
+
+                compoundingDetails.push({
+                    period: period++,
+                    startDate: currentStartDate.toISOString(),
+                    endDate: end.toISOString(),
+                    principal: parseFloat(simpleInterest.principal.toFixed(2)),
+                    interest: parseFloat(simpleInterest.interest.toFixed(2)),
                 });
             }
+
+            compoundingDetails.forEach((detail) => {
+                totalInterest += detail.interest;
+            });
+
+            this.total_interest_amount = parseFloat(totalInterest.toFixed(2));
+            this.total_amount = parseFloat(
+                parseFloat(principal) + parseFloat(this.total_interest_amount)
+            ).toFixed(2);
+            return {
+                compounded: true,
+                principal: parseFloat(principal.toFixed(2)),
+                interest: parseFloat(totalInterest.toFixed(2)),
+                startDate: start.toISOString(),
+                endDate: end.toISOString(),
+                compoundingDetails: compoundingDetails,
+            };
+        },
+
+        calculateSimpleInterest(principal, rate, time) {
+            const interest = (principal * rate * time) / 100;
+            return {
+                principal,
+                rate,
+                time,
+                interest,
+            };
         },
 
         getDateDiff(
@@ -194,10 +412,11 @@ export default {
                 months: totalMonths,
                 days: days,
                 totalDays: totalDays,
-                years: years,
+                years: years + months / 12 + days / 365, // Fractional years for partial periods
             };
         },
         calculate() {
+            // Input Validation
             if (
                 this.principal === "" ||
                 this.intrest === "" ||
@@ -208,24 +427,48 @@ export default {
                 this.display_details = false;
                 return;
             }
+
+            if (new Date(this.to_date) < new Date(this.from_date)) {
+                this.errormessage = true;
+                this.display_details = false;
+                return;
+            }
+
             this.errormessage = false;
             this.display_details = true;
-            let dateDiff = this.getDateDiff();
-            this.diffDays = dateDiff.days;
-            this.diffmonths = dateDiff.months;
-            this.diffYears = dateDiff.years;
-            if (this.cummulative !== "0") {
-                this.CompoundInterest();
-            }
-            this.intrest_amount_months = Math.floor(
-                (this.principal * +this.intrest * this.diffmonths) / 100
-            );
-            this.intrest_amount_days = Math.floor(
-                (this.principal * +this.intrest * this.diffDays) / (100 * 30)
-            );
-            this.total_intrest =
-                this.intrest_amount_days + this.intrest_amount_months;
-            this.total_amount = this.principal + this.total_intrest;
+
+            this.compoundingDetails = [];
+            (this.totalTime = ""),
+                (this.totalDays = 0),
+                (this.total_interest_amount = 0);
+            this.total_amount = 0;
+
+            this.compoundingDetails =
+                this.calculateCompoundInterest().compoundingDetails;
+
+            // Calculate interest for remaining months and days
+            //const remainingYears = dateDiff.years - Math.floor(dateDiff.years);
+            //const remainingMonths = Math.floor(remainingYears * 12);
+            // const remainingDays = Math.floor(
+            //     (remainingYears * 12 - remainingMonths) * 30
+            // );
+
+            // this.intrest_amount_months =
+            //     ((parseFloat(this.principal) * parseFloat(this.intrest)) /
+            //         100) *
+            //     (this.diffmonths / 12);
+            // this.intrest_amount_days =
+            //     ((parseFloat(this.principal) * parseFloat(this.intrest)) /
+            //         100) *
+            //     (this.diffDays / 365);
+            // this.total_intrest =
+            //     this.intrest_amount_days +
+            //     this.intrest_amount_months +
+            //     this.simple_interest_details.reduce(
+            //         (acc, detail) => acc + detail.interestAmount,
+            //         0
+            //     );
+            // this.total_amount = parseFloat(this.principal) + this.total_intrest;
         },
     },
 };
@@ -239,7 +482,7 @@ export default {
 }
 
 html {
-    font-family: "Jost", sans-serif;
+    font-family: "Roboto", sans-serif;
 }
 
 body {
@@ -272,28 +515,38 @@ button:focus {
     outline: none;
 }
 
+.table-wrapper {
+    max-width: 60rem; /* Restricts table width to 60rem */
+    overflow-x: auto; /* Enables horizontal scrolling */
+    margin: 0 auto; /* Centers the table wrapper */
+}
+
+.details-table {
+    width: 100%; /* Ensures the table takes full width of its container */
+    border-collapse: collapse; /* Better table structure */
+}
+
+.details-table th,
+.details-table td {
+    padding: 1rem;
+    text-align: left;
+    border: 1px solid #ddd; /* Optional: Adds borders to cells */
+    white-space: nowrap; /* Prevents text wrapping */
+}
+
 button:hover,
 button:active {
     background-color: #af0a78;
     border-color: #af0a78;
     box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.26);
 }
-.center {
-    width: 100vw;
-}
+
 .card {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
     padding: 1rem;
-    padding-bottom: 0;
     margin: 2rem auto;
-    margin-bottom: 0;
-    max-width: 37rem;
-    max-height: max-content;
-}
-
-.inputbox {
-    margin: 15px;
+    max-width: 60rem;
 }
 
 label {
@@ -303,16 +556,17 @@ label {
 }
 
 input,
-textarea {
+select {
     display: block;
     width: 100%;
     font: inherit;
-    padding: 0.15rem;
+    padding: 0.5rem;
     border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 input:focus,
-textarea:focus {
+select:focus {
     outline: none;
     border-color: #3a0061;
     background-color: #f7ebff;
@@ -320,5 +574,37 @@ textarea:focus {
 
 .form-control {
     margin: 1rem 0;
+}
+
+.error-message {
+    color: red;
+    margin-top: 1rem;
+}
+
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.details-table th,
+.details-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.details-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.summary {
+    margin-top: 1rem;
+}
+
+.summary p {
+    font-size: 1rem;
+    margin: 0.5rem 0;
 }
 </style>
