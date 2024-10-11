@@ -140,7 +140,7 @@ export default {
             totalDays: 0,
             totalTime: "",
             principal: "",
-            cummulative: "0",
+            cummulative: 0,
             intrest: "",
             to_date: "",
             from_date: "",
@@ -244,7 +244,8 @@ export default {
             let startDate = new Date(this.from_date);
             let endDate = new Date(this.to_date);
             let forNoOfYears = this.cummulative;
-            let compounded = this.cummulative !== "0" ? true : false;
+            let compounded = this.cummulative !== 0 ? true : false;
+            console.log(compounded, this.cummulative);
 
             const start = new Date(startDate);
             const end = endDate ? new Date(endDate) : new Date();
@@ -375,7 +376,7 @@ export default {
         },
 
         calculateSimpleInterest(principal, rate, time) {
-            const interest = (principal * rate * time) / 100;
+            const interest = (principal * rate * 12 * time) / 100;
             return {
                 principal,
                 rate,
@@ -415,7 +416,26 @@ export default {
                 years: years + months / 12 + days / 365, // Fractional years for partial periods
             };
         },
+
+        clearAll() {
+            this.totalDays = 0;
+            this.totalTime = "";
+            this.intrest_amount_months = 0;
+            this.intrest_amount_days = 0;
+            this.total_amount = 0;
+            this.total_interest_amount = 0;
+            this.diffDays = 0;
+            this.diffmonths = 0;
+            this.diffYears = 0;
+            this.display_details = false;
+            this.errormessage = false;
+            this.simple_interest_details = [];
+            this.compoundingDetails = [];
+
+            console.log("clear all called");
+        },
         calculate() {
+            this.clearAll();
             // Input Validation
             if (
                 this.principal === "" ||
@@ -436,12 +456,6 @@ export default {
 
             this.errormessage = false;
             this.display_details = true;
-
-            this.compoundingDetails = [];
-            (this.totalTime = ""),
-                (this.totalDays = 0),
-                (this.total_interest_amount = 0);
-            this.total_amount = 0;
 
             this.compoundingDetails =
                 this.calculateCompoundInterest().compoundingDetails;
