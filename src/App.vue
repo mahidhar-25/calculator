@@ -299,13 +299,6 @@ export default {
             const timeInterval = forNoOfYears;
 
             while (currentStartDate < end) {
-                const simpleInterest = this.calculateSimpleInterest(
-                    currentPrincipal,
-                    interestRate,
-                    timeInterval
-                );
-                currentPrincipal += simpleInterest.interest;
-
                 const nextStartDate = new Date(currentStartDate);
                 nextStartDate.setFullYear(
                     nextStartDate.getFullYear() + Math.floor(timeInterval)
@@ -317,6 +310,12 @@ export default {
                 if (nextStartDate > end) {
                     break;
                 }
+                const simpleInterest = this.calculateSimpleInterest(
+                    currentPrincipal,
+                    interestRate,
+                    timeInterval
+                );
+                currentPrincipal += simpleInterest.interest;
 
                 compoundingDetails.push({
                     period: period++,
@@ -330,7 +329,6 @@ export default {
             }
 
             // Calculate interest for the remaining period if any
-            console.log(this.getDateDifference(currentStartDate, end));
             const remainingTimeInYears = this.getDateDifference(
                 currentStartDate,
                 end
@@ -340,19 +338,20 @@ export default {
                     remainingTimeInYears,
                     end: end.toISOString(),
                     current: currentStartDate.toISOString(),
+                    currentPrincipal: currentPrincipal,
                 });
                 const simpleInterest = this.calculateSimpleInterest(
                     currentPrincipal,
                     interestRate,
                     remainingTimeInYears.completeYears
                 );
-                currentPrincipal += simpleInterest.interest;
+                //currentPrincipal += simpleInterest.interest;
 
                 compoundingDetails.push({
                     period: period++,
                     startDate: currentStartDate.toISOString(),
                     endDate: end.toISOString(),
-                    principal: parseFloat(simpleInterest.principal.toFixed(2)),
+                    principal: parseFloat(currentPrincipal.toFixed(2)),
                     interest: parseFloat(simpleInterest.interest.toFixed(2)),
                 });
             }
